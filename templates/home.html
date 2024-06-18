@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="jumbotron jumbotron-fluid">
+  <div class="container">
+    <h1 class="display-4">Anexe o arquivo PDF aqui</h1>
+
+    <br>
+    <br>
+
+    <form action="{{ url_for('index') }}" method="POST" enctype="multipart/form-data">
+      {{ form.hidden_tag() }}
+      {{ form.file(class="form-control") }}
+      {{ form.submit(class="btn btn-primary") }}
+    </form>
+
+    <br>
+    <br>
+
+    <h1 class="display-4">Download</h1>
+
+    <br>
+    <br>
+
+    <form action="{{ url_for('download') }}" method="GET">
+      <div class="mb-3">
+        <label for="file_name" class="form-label">Nome do arquivo</label>
+        <input type="text" class="form-control" id="file_name" name="file_name" placeholder="Digite o nome do arquivo" onkeyup="fetchSuggestions(this.value)">
+        <div id="suggestions"></div>
+      </div>
+      <button type="submit" class="btn btn-primary">Download</button>
+    </form>
+
+  </div>
+</div>
+
+{% with messages = get_flashed_messages() %}
+   {% if messages %}
+    <div class="alert alert-warning" role="alert">
+      <ul>
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+   {% endif %}
+{% endwith %}
+
+<script>
+ function fetchSuggestions(term) {
+      if (term.length === 0) {
+          document.getElementById("suggestions").innerHTML = "";
+          return;
+      }
+
+      fetch(`/suggest?term=${term}`)
+          .then(response => response.json())
+          .then(data => {
+              let suggestions = '<ul class="list-group">';
+              data.forEach(function(item) {
+                  suggestions += `<li class="list-group-item" onclick="selectSuggestion('${item}')">${item}</li>`;
+              });
+              suggestions += '</ul>';
+              document.getElementById("suggestions").innerHTML = suggestions;
+          })
+          .catch(error => console.error('Erro ao buscar sugestões:', error));
+ }
+
+ function selectSuggestion(value) {
+      document.getElementById("file_name").value = value;
+      document.getElementById("suggestions").innerHTML = "";
+ }
+</script>
+
+{% endblock %}
